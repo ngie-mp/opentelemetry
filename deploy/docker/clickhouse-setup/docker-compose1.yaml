@@ -1,0 +1,74 @@
+version: "2.4"
+
+x-clickhouse-defaults: &clickhouse-defaults
+  restartPolicy:
+    condition: on-failure
+  build:
+    context: .
+    dockerfile: Dockerfile.clickhouse
+  tty: true
+  logging:
+    options:
+      max-size: 50m
+      max-file: "3"
+    
+x-clickhouse-depend: &clickhouse-depend
+  livenessProbe:
+    exec:
+      command:
+      - /bin/bash
+      - -c
+      - clickhouse client -h localhost -u $CLICKHOUSE_USER --password $CLICKHOUSE_PASSWORD --query "SELECT 1" || exit 1
+    initialDelaySeconds: 60
+    periodSeconds: 10
+  readinessProbe:
+    exec:
+      command:
+      - /bin/bash
+      - -c
+      - clickhouse client -h localhost -u $CLICKHOUSE_USER --password $CLICKHOUSE_PASSWORD --query "SELECT 1" || exit 1
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+services:
+
+  zookeeper-1:
+    image: bitnami/zookeeper:3.7.0
+    container_name: zookeeper-1
+    hostname: zookeeper-1
+    user: root
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    volumes:
+      - ./data/zookeeper-1:/bitnami/zookeeper
+    environment:
+      - ZOO_SERVER_ID=1
+      # - ZOO_SERVERS=0.0.0.0:2888:3888,zookeeper-2:2888:3888,zookeeper-3:2888:3888
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_AUTOPURGE_INTERVAL=1
+
+  clickhouse:
+    <<: *clickhouse-defaults
+    container_name: clickhouse
+    hostname: clickhouse
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+      - "9181:9181"
+    volumes:
+      - ./clickhouse-config.xml:/etc/clickhouse-server/config.xml
+      - ./clickhouse-users.xml:/etc/clickhouse-server/users.xml
+      - ./custom-function.xml:/etc/clickhouse-server/custom-function.xml
+      - ./clickhouse-cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
+      # - ./clickhouse-storage.xml:/etc/clickhouse-server/config.d/storage.xml
+      - ./data/clickhouse/:/var/lib/clickhouse/
+      - ./user_scripts:/var/lib/clickhouse/user_scripts/
+    imagePullPolicy: Always
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250

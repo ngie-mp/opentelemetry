@@ -1,4 +1,32 @@
 receivers:
+  httpcheck/tequila-front-get:
+    endpoint: https://test-tequila.epfl.ch/
+    method: GET
+    collection_interval: 10s
+  httpcheck/tequila-front-post:
+    endpoint: https://test-tequila.epfl.ch/
+    method: POST
+    collection_interval: 10s
+  httpcheck/gta-test-front:
+    endpoint: https://gta-test.epfl.ch
+    method: GET
+    collection_interval: 10s
+  httpcheck/gta-test-front-post:
+    endpoint: https://gta-test.epfl.ch
+    method: POST
+    collection_interval: 10s
+  httpcheck/gta-prod-front:
+    endpoint: https://absences2.epfl.ch
+    method: GET
+    collection_interval: 10s
+  httpcheck/gta-prod-front-post:
+    endpoint: https://absences2.epfl.ch
+    method: POST
+    collection_interval: 10s
+  httpcheck/gta-test-api:
+    endpoint: https://gta-test.epfl.ch/api
+    method: GET
+    collection_interval: 1s
   filelog/dockercontainers:
     include: [  "/var/lib/docker/containers/*/*.log" ]
     start_at: end
@@ -35,6 +63,9 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
       http:
+        cors:
+          allowed_origins:
+            - https://localhost:4200
         endpoint: 0.0.0.0:4318
   jaeger:
     protocols:
@@ -156,9 +187,9 @@ service:
       processors: [signozspanmetrics/prometheus, batch]
       exporters: [clickhousetraces]
     metrics:
-      receivers: [otlp]
+      receivers: [otlp,httpcheck/tequila-front-get, httpcheck/tequila-front-post, httpcheck/gta-test-front, httpcheck/gta-test-front-post, httpcheck/gta-prod-front, httpcheck/gta-prod-front-post, httpcheck/gta-test-api]
       processors: [batch]
-      exporters: [clickhousemetricswrite]
+      exporters: [clickhousemepotricswrite]
     metrics/generic:
       receivers: [hostmetrics]
       processors: [resourcedetection, batch]
