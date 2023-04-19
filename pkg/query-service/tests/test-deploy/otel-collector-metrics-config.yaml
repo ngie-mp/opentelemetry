@@ -11,7 +11,7 @@ receivers:
           scrape_interval: 60s
           static_configs:
             - targets:
-              - localhost:8888
+              - 0.0.0.0:8888
         # SigNoz span metrics
         - job_name: signozspanmetrics-collector
           scrape_interval: 60s
