@@ -189,7 +189,7 @@ service:
     metrics:
       receivers: [otlp,httpcheck/tequila-front-get, httpcheck/tequila-front-post, httpcheck/gta-test-front, httpcheck/gta-test-front-post, httpcheck/gta-prod-front, httpcheck/gta-prod-front-post, httpcheck/gta-test-api]
       processors: [batch]
-      exporters: [clickhousemepotricswrite]
+      exporters: [clickhousemetricswrite]
     metrics/generic:
       receivers: [hostmetrics]
       processors: [resourcedetection, batch]
